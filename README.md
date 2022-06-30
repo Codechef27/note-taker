@@ -29,7 +29,7 @@
 
   ## Languages Used
 
-  HTML,CSS,Javascript,Other
+  HTML, CSS, Javascript, Express.js, JSON
 
   ## Usage 
 
