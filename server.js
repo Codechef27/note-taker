@@ -15,61 +15,93 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { tasks } = require('./Develop/db/db.json');
 const PORT = process.env.PORT || 3001;
 const app = express();
+const notes = require('./Develop/db/db.json');
 
-
+app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('public'));
 
-function findById(id, taskArray) {
-    const result = taskArray.filter(task => task.id === id)[0];
-    return result;
-}
 
-function createNewTask(body, taskArray){
-    const task = body;
-    taskArray.push(task);
+// function findById(id, noteArray) {
+//     const result = noteArray.filter(note => note.id === id)[0];
+//     return result;
+// }
+
+function createNewNote(body, noteArray){
+    const note = body;
+    noteArray.push(note);
     fs.writeFileSync(
-        path.join(__dirname,'./Develop/db/db.json'),JSON.stringify({ tasks: taskArray}, null, 2));
-    return task;
+        path.join(__dirname,'./Develop/db/db.json'),JSON.stringify(notes, null, 2)
+        );
+    return note;
 }
 
-function validateTask(task) {
-    if (!task.title || typeof task.title !== 'string') {
+function validateNote(note) {
+    if (!note.title || typeof note.title !== 'string') {
         return false;
     }
-    if (!task.text || typeof task.text !== 'string') {
+    if (!note.text || typeof note.text !== 'string') {
         return false; 
     }
     return true;
 }
 
-app.get('/api/tasks', (req, res) => {
 
-    res.json(tasks);
+app.get('/api/notes', (req, res) => {
+    let results = notes;
+    res.json(results);
+    return results;
 });
 
-app.get('/api/tasks/:id', (req, res) => {
-    const result = findById(req.params.id, tasks);
-    res.json(result);
+
+app.get('/api/notes/:id', (req, res) => {
+    const result = findById(req.params.id, notes);
+    if (result) {
+        res.json(result);
+    } else {
+        res.send(404);
+    }
 });
 
-app.post('/api/tasks', (req, res) => {
-    req.body.id = tasks.length.toString();
 
-    if (!validateTask(req.body)) {
-        res.status(400).send('The task is not properly formatted.');
+app.post('/api/notes', (req, res) => {
+    req.body.id = notes.length.toString();
+
+    if (!validateNote(req.body)) {
+        res.status(400).send('The note is not properly formatted.');
     } else {
 
-        const task = createNewTask(req.body, tasks);
+        const note = createNewNote(req.body, notes);
 
-        res.json(task);
+        res.json(note);
     }
 
 });
+
+app.delete('/api/notes/:id', (req, res) => {
+  
+  let id = req.params.id;
+  let noteArray =  notes ;
+  for (i = 0; i < noteArray.length; i++) {
+    if (noteArray[i].id === id) {
+        noteArray.splice(i, 1);
+        fs.writeFileSync(path.join(__dirname,'./Develop/db/db.json'),JSON.stringify(noteArray, null, 2));
+    }
+  }
+   res.json(noteArray);
+});    
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'));
+});
+app.get('/notes', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/notes.html'));
+});
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/notes.html'));
+})
 
 app.listen(PORT, () => {
     console.log(`API server listening on http://localhost:${PORT}`)

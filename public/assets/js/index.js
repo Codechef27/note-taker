@@ -1,3 +1,4 @@
+// const { response } = require("express");
 let noteTitle;
 let noteText;
 let saveNoteBtn;
@@ -29,18 +30,22 @@ const getNotes = () =>
   fetch('/api/notes', {
     method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
     },
   });
+ 
 
-const saveNote = (note) =>
+const saveNote = (note) => 
   fetch('/api/notes', {
     method: 'POST',
     headers: {
+      Accept: 'application/json',
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(note),
-  });
+  })
+  
 
 const deleteNote = (id) =>
   fetch(`/api/notes/${id}`, {
@@ -66,12 +71,15 @@ const renderActiveNote = () => {
   }
 };
 
-const handleNoteSave = () => {
+const handleNoteSave = (event) => {
+  event.preventDefault();
   const newNote = {
     title: noteTitle.value,
     text: noteText.value,
   };
-  saveNote(newNote).then(() => {
+
+ 
+  saveNote(newNote).then( () => {
     getAndRenderNotes();
     renderActiveNote();
   });
